@@ -1,19 +1,23 @@
 {
   "name": "devtinder-backend",
   "version": "1.0.0",
-  "description": "tinder for devs",
+  "description": "Tinder for devs",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/AashishShri/devTinder-backend.git"
   },
-  "author": "",
+  "author": "Aashish Shrivastava",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/AashishShri/devTinder-backend/issues"
   },
-  "homepage": "https://github.com/AashishShri/devTinder-backend#readme"
+  "homepage": "https://github.com/AashishShri/devTinder-backend#readme",
+  "dependencies": {
+    "express": "^4.21.2"
+  }
 }
