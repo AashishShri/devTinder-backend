@@ -2,14 +2,23 @@ const express = require('express')
 
 const app = express()
 
+const { adminAuth } = require("./middlewares/auth")
 
-app.use('/test',(req,res)=>{
-    res.send("I m from dev tinder test")
+app.use("/admin", adminAuth )
+
+
+app.get('/admin/add',(req,res)=>{
+    res.send("I m from dev tinder admin/add")
 
 })
 
-app.use('/',(req,res)=>{
-    res.send("I m from dev tinder")
+app.get('/admin/delete',(req,res)=>{
+    res.send("I m from dev tinder admin/delete")
+
+})
+
+app.get('/test',(req,res)=>{
+    res.send("I m from dev tinder test")
 
 })
 
