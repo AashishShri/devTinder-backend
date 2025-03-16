@@ -1,23 +1,58 @@
 const express = require("express");
 const connectDB = require("./config/database");
 const User = require("./models/user");
+const { validationSignUpInput } = require("./utils/validation");
+const bcrypt = require("bcrypt");
+const validator = require("validator");
 
 const app = express();
 
 app.use(express.json());
 
 app.post("/signup", async (req, res) => {
-  const user = new User(req.body);
   try {
-    //await user.create({ "emailId": 1 }, { unique: true });
+    validationSignUpInput(req);
+    const { firstName, lastName, emailId, password } = req.body;
+    const saltRounds = 10;
+
+    const passwordHash = await bcrypt.hash(password, saltRounds);
+
+    const user = new User({
+      firstName,
+      lastName,
+      emailId,
+      password: passwordHash,
+    });
+
     await user.save();
 
     res.status(200).send("User added successfully");
   } catch (err) {
-    if (err.code === 11000) {
+    if (err?.code === 11000) {
       return res.status(400).send("Email already exists.");
     }
-    res.status(400).send(`Error while saving user: ${err.message}`);
+    res.status(400).send(`Error while saving user: ${err?.message}`);
+  }
+});
+
+app.post("/login", async (req, res) => {
+  try {
+    const { emailId, password } = req.body;
+    if (!validator.isEmail(emailId)) {
+      throw new Error("email is not valid");
+    }
+    const users = await User.findOne({ emailId });
+    if (!users) {
+      throw new Error("EmailId is not present is DB");
+    }
+    const isPasswordValid = await bcrypt.compare(password, users.password);
+    if (isPasswordValid) {
+      res.status(200).send("Login Successfully");
+    } else {
+      throw new Error("Password is not correct");
+    }
+  } catch (err) {
+    res.status(400).send(`Error while saving user: ${err?.message}`);
   }
 });
 
@@ -61,20 +96,14 @@ app.patch("/user/:userId", async (req, res) => {
   const userId = req?.params?.userId;
   const data = req.body;
   try {
-    const ALLOWED_UPDATES = [
-      "photoUrl",
-      "about",
-      "gender",
-      "age",
-      "skills",
-    ];
+    const ALLOWED_UPDATES = ["photoUrl", "about", "gender", "age", "skills"];
     const isUpdateAllowed = Object.keys(data).every((e) =>
       ALLOWED_UPDATES.includes(e)
     );
     if (!isUpdateAllowed) {
       throw new Error("Updated not allowed");
     }
-    if (data?.skills?.length >10) {
+    if (data?.skills?.length > 10) {
       throw new Error("Skills can not be more then 10");
     }
 
@@ -85,7 +114,7 @@ app.patch("/user/:userId", async (req, res) => {
 
     res.status(200).send("user updated successfully");
   } catch (err) {
-    res.status(400).send("Update failed : " +err.message);
+    res.status(400).send("Update failed : " + err.message);
   }
 });
 
