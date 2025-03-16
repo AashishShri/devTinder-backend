@@ -50,11 +50,13 @@ app.post("/login", async (req, res) => {
     if (!users) {
       throw new Error("EmailId is not present is DB");
     }
-    const isPasswordValid = await users.validatePassword(password);
+    const isPasswordValid = await bcrypt.compare(password, users.password);
     if (isPasswordValid) {
-      // const token = await jwt.sign({ _id: users._id }, "Dev@Tinder$799",  { expiresIn: '1h' });
+      // create jwt token
+      const token = jwt.sign({ _id: users._id }, "Dev@Tinder$799");
 
-      const token = await users.getJWT();
+      console.log("token", token);
+      // add the token to cookie and send the response  back
 
       res.cookie("token", token);
       res.status(200).send("Login Successfully");
@@ -76,15 +78,65 @@ app.get("/profile", userAuth, async (req, res) => {
   }
 });
 
-app.get("/sendConnectionRequest", userAuth, async (req, res) => {
+app.get("/user", async (req, res) => {
+  const userEmail = req.body.emailId;
   try {
-    const user = req?.user;
-
-    res
-      .status(200)
-      .send(`${user.firstName} is trying to send connection request`);
+    const users = await User.find({ emailId: userEmail });
+    if (users.length === 0) {
+      res.status(404).send("Error User not found : ");
+    } else {
+      res.send(users);
+    }
   } catch (err) {
-    res.status(400).send(`Error while getting profile: ${err?.message}`);
+    res.status(400).send("Error while getting user : ", +err.message);
+  }
+});
+
+app.get("/feed", async (req, res) => {
+  try {
+    const users = await User.find({});
+    res.send(users);
+  } catch (error) {
+    res.status(400).send("Error while getting user : ", +error.message);
+  }
+});
+
+app.delete("/user", async (req, res) => {
+  const userId = req.body.userId;
+  try {
+    const users = await User.findByIdAndDelete({ _id: userId });
+    //const users =  await User.findByIdAndDelete({userId})
+    console.log("users", users);
+
+    res.status(200).send("user deleted successfully");
+  } catch (err) {
+    res.status(400).send("Error while deleteing user : ", +err.message);
+  }
+});
+
+app.patch("/user/:userId", async (req, res) => {
+  const userId = req?.params?.userId;
+  const data = req.body;
+  try {
+    const ALLOWED_UPDATES = ["photoUrl", "about", "gender", "age", "skills"];
+    const isUpdateAllowed = Object.keys(data).every((e) =>
+      ALLOWED_UPDATES.includes(e)
+    );
+    if (!isUpdateAllowed) {
+      throw new Error("Updated not allowed");
+    }
+    if (data?.skills?.length > 10) {
+      throw new Error("Skills can not be more then 10");
+    }
+
+    await User.findByIdAndUpdate({ _id: userId }, data, {
+      returnDocument: "before",
+      runValidators: true,
+    });
+
+    res.status(200).send("user updated successfully");
+  } catch (err) {
+    res.status(400).send("Update failed : " + err.message);
   }
 });
 
