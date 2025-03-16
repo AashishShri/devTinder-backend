@@ -19,6 +19,7 @@
   "homepage": "https://github.com/AashishShri/devTinder-backend#readme",
   "dependencies": {
     "express": "^4.21.2",
-    "mongoose": "^8.12.1"
+    "mongoose": "^8.12.1",
+    "validator": "^13.12.0"
   }
 }

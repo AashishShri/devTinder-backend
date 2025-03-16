@@ -11,7 +11,6 @@ app.post("/signup", async (req, res) => {
   try {
     //await user.create({ "emailId": 1 }, { unique: true });
     await user.save();
-    
 
     res.status(200).send("User added successfully");
   } catch (err) {
@@ -58,18 +57,35 @@ app.delete("/user", async (req, res) => {
   }
 });
 
-app.patch("/user", async (req, res) => {
-  const userId = req.body.userId;
+app.patch("/user/:userId", async (req, res) => {
+  const userId = req?.params?.userId;
   const data = req.body;
   try {
+    const ALLOWED_UPDATES = [
+      "photoUrl",
+      "about",
+      "gender",
+      "age",
+      "skills",
+    ];
+    const isUpdateAllowed = Object.keys(data).every((e) =>
+      ALLOWED_UPDATES.includes(e)
+    );
+    if (!isUpdateAllowed) {
+      throw new Error("Updated not allowed");
+    }
+    if (data?.skills?.length >10) {
+      throw new Error("Skills can not be more then 10");
+    }
+
     await User.findByIdAndUpdate({ _id: userId }, data, {
       returnDocument: "before",
-      runValidators: true
+      runValidators: true,
     });
 
     res.status(200).send("user updated successfully");
   } catch (err) {
-    res.status(400).send("Error while deleteing user : ", +err.message);
+    res.status(400).send("Update failed : " +err.message);
   }
 });
 

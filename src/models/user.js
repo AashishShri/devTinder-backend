@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const validator = require("validator");
 
 const userSchma = new mongoose.Schema(
   {
@@ -17,10 +18,29 @@ const userSchma = new mongoose.Schema(
       unique: true, // This adds a unique constraint
       lowercase: true,
       trim: true,
+      validate(value) {
+        if (!validator.isEmail(value)) {
+          throw new Error(`Invalid email id : ${value}`);
+        }
+      },
     },
     password: {
       type: String,
       required: true,
+      validate(value) {
+        if (!validator.isStrongPassword(value)) {
+          throw new Error(`Enter a strong Password : ${value}`);
+        }
+      },
+    },
+    photoUrl: {
+      type: String,
+      default: "https://akshaysaini.in/img/akshay.jpg",
+      validate(value) {
+        if (!validator.isURL(value)) {
+          throw new Error(`Invalid photo url : ${value}`);
+        }
+      },
     },
     age: {
       type: Number,
@@ -43,7 +63,7 @@ const userSchma = new mongoose.Schema(
       type: [String],
     },
   },
-  { timestamps: true, }
+  { timestamps: true }
 );
 
 const User = mongoose.model("User", userSchma);
