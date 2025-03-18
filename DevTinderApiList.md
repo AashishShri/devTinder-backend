@@ -20,5 +20,8 @@
 - GET /user/request
 - GET /user/feed - Gets you the profiles of other user for UI
 
+with pagination in mongodb skip() and limit()
+- GET /user/feed?page=1&limit =10 => first 10 user 1-10
+
 
 Status : ignore(pass) , intersted(like) , accepted ,rejected 
